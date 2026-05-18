@@ -3,6 +3,7 @@ import 'package:crud_api_consumption_dio/blocs/country/country_event.dart';
 import 'package:crud_api_consumption_dio/blocs/country/country_state.dart';
 import 'package:crud_api_consumption_dio/models/country.dart';
 import 'package:crud_api_consumption_dio/screens/country_form_screen.dart';
+import 'package:crud_api_consumption_dio/theme/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -17,49 +18,122 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    // Countries are fetched initially on app startup in main.dart
-  }
-
-  @override
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _delete(BuildContext context, String commonName) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showModalBottomSheet<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
-            SizedBox(width: 8),
-            Text('Delete Country', style: TextStyle(fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 20,
+              offset: Offset(0, -8),
+            ),
           ],
         ),
-        content: Text(
-          'Are you sure you want to permanently delete "$commonName"? This action cannot be undone.',
-          style: const TextStyle(fontSize: 15),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.warning,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Remove from Atlas',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Are you sure you want to permanently delete "$commonName"? This record will be erased immediately from your local database.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textMuted,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: AppColors.borderLight, width: 1.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text(
+                      'Keep Country',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.warning,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text(
+                      'Confirm Delete',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
 
@@ -89,32 +163,189 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildDashboardHero(CountryState state) {
+    final totalExplored = state.countries.length;
+    final totalCapitals = state.countries.where((c) => c.capitals.isNotEmpty).length;
+    final totalCurrencies = state.countries
+        .map((c) => c.currency.keys)
+        .expand((keys) => keys)
+        .toSet()
+        .length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+      decoration: const BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(28),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ATLAS EXPLORER',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.55),
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Explore the Globe',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.sync_rounded, color: Colors.white, size: 22),
+                    tooltip: 'Refresh Database',
+                    onPressed: () {
+                      _searchCtrl.clear();
+                      context.read<CountryBloc>().add(const LoadCountries());
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildStatBadge('Countries', totalExplored.toString(), Icons.public_rounded),
+                _buildStatBadge('Capitals', totalCapitals.toString(), Icons.account_balance_rounded),
+                _buildStatBadge('Currencies', totalCurrencies.toString(), Icons.payments_rounded),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatBadge(String label, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white60, size: 18),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.borderLight,
+          width: 1.2,
+        ),
+      ),
+      child: TextField(
+        controller: _searchCtrl,
+        onSubmitted: (val) {
+          context.read<CountryBloc>().add(LoadSingleCountry(val));
+        },
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textDark,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search country name (e.g. Canada)...',
+          hintStyle: const TextStyle(
+            color: AppColors.textMuted,
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+          ),
+          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted, size: 20),
+          suffixIcon: _searchCtrl.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear_rounded, color: AppColors.textMuted, size: 18),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    context.read<CountryBloc>().add(const LoadCountries());
+                  },
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        onChanged: (val) {
+          if (val.isEmpty) {
+            context.read<CountryBloc>().add(const LoadCountries());
+          }
+        },
+      ),
+    );
+  }
+
   Widget _buildCard(BuildContext context, Country country) {
     final currencies = country.currency.entries
-        .map((e) => '${e.key}: ${e.value.name} (${e.value.symbol})')
+        .map((e) => '${e.value.name} (${e.value.symbol})')
         .join(', ');
 
     final String firstLetter = country.name.common.isNotEmpty
         ? country.name.common[0].toUpperCase()
         : '?';
 
+    final firstLangCode = country.name.nativeName.keys.firstOrNull;
+    final avatarStyle = DesignSystem.getAvatarStyle(country.name.common);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0x0A673AB7),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: const Color(0x14673AB7),
-          width: 1,
-        ),
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      decoration: AppStyles.boxDecoration,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
@@ -130,23 +361,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.deepPurple.shade100,
-                            Colors.deepPurple.shade200,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        shape: BoxShape.circle,
+                        gradient: avatarStyle.gradient,
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
                         child: Text(
                           firstLetter,
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple.shade800,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: avatarStyle.textColor,
                           ),
                         ),
                       ),
@@ -156,22 +380,50 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            country.name.common,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  country.name.common,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textDark,
+                                    letterSpacing: -0.2,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (firstLangCode != null) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.secondary.withOpacity(0.06),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    firstLangCode.toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                ),
+                              ]
+                            ],
                           ),
                           const SizedBox(height: 2),
                           Text(
                             country.name.official,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textMuted,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
@@ -181,12 +433,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.mode_edit_outline_outlined, color: Colors.indigo, size: 22),
-                          tooltip: 'Update',
+                          icon: const Icon(Icons.edit_note_rounded, color: AppColors.textMuted, size: 24),
+                          tooltip: 'Edit Info',
                           onPressed: () => _openUpdate(context, country),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete_outline_outlined, color: Colors.redAccent, size: 22),
+                          icon: const Icon(Icons.delete_outline_rounded, color: AppColors.warning, size: 20),
                           tooltip: 'Delete',
                           onPressed: () => _delete(context, country.name.common),
                         ),
@@ -194,15 +446,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(height: 1, thickness: 0.8),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    DesignSystem.buildTag(
+                      icon: Icons.location_city_rounded,
+                      label: country.capitals.isEmpty
+                          ? 'No Capital'
+                          : country.capitals.join(', '),
+                      baseColor: AppColors.secondary,
+                    ),
+                    DesignSystem.buildTag(
+                      icon: Icons.payments_rounded,
+                      label: currencies.isEmpty ? 'No Currency' : currencies,
+                      baseColor: AppColors.accent,
+                    ),
+                  ],
                 ),
-                _row(Icons.location_city_outlined, 'Capital',
-                    country.capitals.isEmpty ? 'N/A' : country.capitals.join(', ')),
-                const SizedBox(height: 8),
-                _row(Icons.monetization_on_outlined, 'Currency',
-                    currencies.isEmpty ? 'N/A' : currencies),
               ],
             ),
           ),
@@ -211,78 +473,86 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _row(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: Colors.deepPurple.shade400),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-            color: Colors.black54,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildPaginationPanel(BuildContext context, CountryState state) {
     final bloc = context.read<CountryBloc>();
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       child: Column(
         children: [
-          Text(
-            'Showing ${state.visibleCountries.length} of ${state.totalCount} Countries',
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade600,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Divider(color: Colors.grey.shade100, thickness: 1.2),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Viewing ${state.visibleCountries.length} of ${state.totalCount}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Divider(color: Colors.grey.shade100, thickness: 1.2),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (state.canShowLess)
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.deepPurple,
-                    elevation: 0,
-                    side: BorderSide(color: Colors.deepPurple.shade200),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: const BorderSide(color: AppColors.primary, width: 1.2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => bloc.add(const ShowFewerCountries()),
+                      icon: const Icon(Icons.keyboard_arrow_up_rounded, color: AppColors.primary, size: 20),
+                      label: const Text(
+                        'Show Less',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
                   ),
-                  onPressed: () => bloc.add(const ShowFewerCountries()),
-                  icon: const Icon(Icons.expand_less, size: 20),
-                  label: const Text('Show Less', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
-              if (state.canShowLess && state.hasMore) const SizedBox(width: 16),
               if (state.hasMore)
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => bloc.add(const LoadMoreCountries()),
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20),
+                      label: const Text(
+                        'Load More',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
                   ),
-                  onPressed: () => bloc.add(const LoadMoreCountries()),
-                  icon: const Icon(Icons.expand_more, size: 20),
-                  label: const Text('Load More', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -291,83 +561,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0x0A673AB7),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: const Color(0x14673AB7),
-          width: 1,
-        ),
-      ),
-      child: TextField(
-        controller: _searchCtrl,
-        onSubmitted: (val) {
-          context.read<CountryBloc>().add(LoadSingleCountry(val));
-        },
-        decoration: InputDecoration(
-          hintText: 'Search country name (e.g. Canada)',
-          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-          prefixIcon: const Icon(Icons.search, color: Colors.deepPurple),
-          suffixIcon: IconButton(
-            icon: const Icon(Icons.clear, color: Colors.grey),
-            onPressed: () {
-              _searchCtrl.clear();
-              context.read<CountryBloc>().add(const LoadCountries());
-            },
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFE),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        title: const Text(
-          'Atlas Explorer',
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.refresh, color: Colors.deepPurple),
-              tooltip: 'Reload countries',
-              onPressed: () {
-                _searchCtrl.clear();
-                context.read<CountryBloc>().add(const LoadCountries());
-              },
-            ),
-          ),
-        ],
-      ),
       body: Column(
         children: [
+          BlocBuilder<CountryBloc, CountryState>(
+            builder: (ctx, state) => _buildDashboardHero(state),
+          ),
           _buildSearchBar(context),
           Expanded(
             child: BlocConsumer<CountryBloc, CountryState>(
@@ -378,22 +579,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     SnackBar(
                       content: Row(
                         children: [
-                          const Icon(Icons.check_circle_outline, color: Colors.white),
+                          const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
                           const SizedBox(width: 8),
-                          Expanded(child: Text('"$deletedName" has been deleted.')),
+                          Expanded(
+                            child: Text(
+                              '"$deletedName" removed from Atlas.',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ],
                       ),
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: AppColors.primary,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: const EdgeInsets.all(20),
                     ),
                   );
                 } else if (state.errorMessage != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.errorMessage!),
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: AppColors.warning,
                       behavior: SnackBarBehavior.floating,
+                      margin: const EdgeInsets.all(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   );
                   context.read<CountryBloc>().add(const ClearError());
@@ -405,11 +618,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircularProgressIndicator(color: Colors.deepPurple),
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                            strokeWidth: 3.5,
+                          ),
+                        ),
                         SizedBox(height: 16),
                         Text(
-                          'Exploring the globe...',
-                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                          'Mapping the globe...',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                       ],
                     ),
@@ -426,36 +650,57 @@ class _HomeScreenState extends State<HomeScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.red.shade50,
+                              color: AppColors.warning.withOpacity(0.08),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.error_outline_rounded,
-                                color: Colors.redAccent, size: 48),
+                            child: const Icon(
+                              Icons.error_outline_rounded,
+                              color: AppColors.warning,
+                              size: 40,
+                            ),
                           ),
                           const SizedBox(height: 16),
                           const Text(
-                            'Oops! Something went wrong',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                            'Connection Failed',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
+                              letterSpacing: -0.5,
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           Text(
                             state.errorMessage!,
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey.shade600),
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              height: 1.4,
+                              fontSize: 13,
+                            ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                             ),
                             onPressed: () {
                               context.read<CountryBloc>().add(const ClearError());
                               context.read<CountryBloc>().add(const LoadCountries());
                             },
-                            child: const Text('Retry Again', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const Text(
+                              'Retry Connection',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -468,11 +713,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.map_outlined, color: Colors.grey.shade400, size: 64),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.borderLight,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.map_rounded,
+                            color: AppColors.textMuted,
+                            size: 48,
+                          ),
+                        ),
                         const SizedBox(height: 16),
-                        Text(
-                          'No countries found.',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 16, fontWeight: FontWeight.w500),
+                        const Text(
+                          'No Countries Discovered',
+                          style: TextStyle(
+                            color: AppColors.textDark,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Try searching for another name or register one.',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -484,11 +752,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Stack(
                   children: [
                     ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 96, top: 8),
+                      padding: const EdgeInsets.only(bottom: 96, top: 4),
                       itemCount: visibleCountries.length + 1,
                       itemBuilder: (ctx, i) {
                         if (i == visibleCountries.length) {
-                          // Hide pagination panel if we searched for one country
                           if (state.totalCount <= 1) {
                             return const SizedBox.shrink();
                           }
@@ -502,7 +769,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         top: 0,
                         left: 0,
                         right: 0,
-                        child: LinearProgressIndicator(color: Colors.deepPurple),
+                        child: LinearProgressIndicator(
+                          color: AppColors.primary,
+                          backgroundColor: Colors.transparent,
+                          minHeight: 2.5,
+                        ),
                       ),
                   ],
                 );
@@ -512,13 +783,20 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         onPressed: () => _openCreate(context),
-        icon: const Icon(Icons.add_rounded, size: 24),
-        label: const Text('Add Country', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        icon: const Icon(Icons.add_location_alt_rounded, size: 20, color: Colors.white),
+        label: const Text(
+          'Add Country',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            letterSpacing: 0.1,
+          ),
+        ),
       ),
     );
   }

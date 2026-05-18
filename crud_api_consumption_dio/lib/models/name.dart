@@ -1,4 +1,4 @@
-import "package:crud_api_consumption_http/models/native_name.dart";
+import "package:crud_api_consumption_dio/models/native_name.dart";
 
 class Name{
   final String common;

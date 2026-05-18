@@ -1,5 +1,5 @@
-import 'package:crud_api_consumption_http/models/currency.dart';
-import 'package:crud_api_consumption_http/models/name.dart';
+import 'package:crud_api_consumption_dio/models/currency.dart';
+import 'package:crud_api_consumption_dio/models/name.dart';
 
 class Country{
   final Name name;
